@@ -1,6 +1,6 @@
 # VinylCoverClassifier
 
-Classify one or more Vinyl covers
+Classify one or more Vinyl covers.
 
 ## Setup
 
