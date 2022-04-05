@@ -54,7 +54,6 @@ for i = 1: size(des1,1)
 end
 hold off;
 num = sum(match > 0);
-fprintf('Found %d matches.\n', num);
 
 
 
