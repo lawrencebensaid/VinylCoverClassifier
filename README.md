@@ -4,7 +4,21 @@ Classify one or more Vinyl covers.
 
 ## Setup
 
+### Pre requisite
+
+To run the program you will need to install the 3 following add-ons:
+
+_Image Processing Toolbox_
+_Image Acquisition Toolbox_
+_Image Acquisition Toolbox Support Package for OS Generic Video Interface_
+
+### Starting
+
 `matlab -nosplash -nodesktop -sd ~/Development/VinylCoverClassifier -r "run('./VinylCoverClassifier.m');"`
+
+## Important note
+
+Image matching is only possible on Windows or Linux machines.
 
 ## Results
 
