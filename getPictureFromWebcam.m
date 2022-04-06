@@ -4,16 +4,16 @@ function img = getPictureFromWebcam()
 
 type = '';
 if ismac
-   type = 'macvideo'
+   type = 'macvideo';
 elseif isunix
-    type = 'linuxvideo'
+    type = 'linuxvideo';
 elseif ispc
-    type = 'winvideo'
+    type = 'winvideo';
 else
-    disp('Platform not supported')
+    disp('Platform not supported');
 end
 
-    x = videoinput(type, 1, 'YCbCr422_960x540', 'ReturnedColorSpace','grayscale');
+    x = videoinput(type, 1);
     img = getsnapshot(x);
 
 end

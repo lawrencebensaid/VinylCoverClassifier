@@ -7,14 +7,14 @@ classdef Certainty
    enumeration
       Low, Medium, High
    end
-    methods
+    methods (Static)
         function certainty = determineCertainty(points)
          if(points > 15)
              certainty = Certainty.High;
         elseif (points > 5)
                 certainty = Certainty.Medium;
          else
-             certainty = Certainty.low;
+             certainty = Certainty.Low;
          end
       end
    end
