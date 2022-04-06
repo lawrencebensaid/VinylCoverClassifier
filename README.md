@@ -8,8 +8,8 @@ Classify one or more Vinyl covers.
 
 To run the program you will need to install the 3 following add-ons:
 
-_Image Processing Toolbox_
-_Image Acquisition Toolbox_
+_Image Processing Toolbox_\
+_Image Acquisition Toolbox_\
 _Image Acquisition Toolbox Support Package for OS Generic Video Interface_
 
 ### Starting
