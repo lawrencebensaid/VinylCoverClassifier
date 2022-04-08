@@ -1,4 +1,4 @@
-# Image matching
+# Vinyl Cover Classifier
 
 Highlight all albums in the wall
 
@@ -10,7 +10,9 @@ $ python imageMatching.py --original-dir data/original --test-img data/test/Canv
 
 ## Demo
 
+`result.jpg`
 
+<img src="https://user-images.githubusercontent.com/43364935/162458304-2834bedc-6f7e-4a63-b97c-7f6b53ac3899.jpg" width="50%">
 
 `results.json`
 ```json
