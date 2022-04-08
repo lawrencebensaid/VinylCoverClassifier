@@ -1,7 +1,8 @@
-import numpy as np
-import json
-from shutil import rmtree
+from datetime import datetime
 from os import path, listdir, mkdir
+from shutil import rmtree
+import json
+import numpy as np
 import argparse
 import cv2
 
@@ -75,6 +76,9 @@ if __name__ == '__main__':
     parser.add_argument("--test-img", type=str)
     args = parser.parse_args()
 
+    # Date in seconds
+    now = datetime.now().timestamp()
+
     original_data_dir = args.original_dir
     files = [file for file in listdir(original_data_dir) if file.split('.')[-1] in extensions]
 
@@ -98,7 +102,7 @@ if __name__ == '__main__':
         name = ''.join(file.split('.')[:-1])
         (matches, confidence, original_key_points, test_key_points, projection_matrix) = feature_matching(original_img, test_img)
 
-        print(f'{name}: {len(matches)} ({confidence})')
+        print(f'{name}: {round(confidence * 100)}% confidence')
         if confidence < .2:
             continue
 
@@ -126,7 +130,11 @@ if __name__ == '__main__':
 
     cv2.imwrite('./results/result.jpg', result_img)
 
+    duration = datetime.now().timestamp() - now
+    print(f'\nTime elapsed: {round(duration)} seconds')
+
     # Display results
     cv2.imshow('result', result_img)
+    print("\n(press any key to exit window)")
     cv2.waitKey()
     cv2.destroyAllWindows()
