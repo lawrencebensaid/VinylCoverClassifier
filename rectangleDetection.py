@@ -117,21 +117,6 @@ def getBinaryImage(img):
     return result_img
 
 
-def applyKMeans(img):
-    Z = img.reshape((-1, 3))
-    Z = np.float32(Z) # convert to np.float32
-
-    K = 2
-    ret, label, center = cv2.kmeans(Z, K, None, (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0), 4, cv2.KMEANS_RANDOM_CENTERS)
-    
-    center = np.uint8(center) # Convert back to uint8
-    res = center[label.flatten()]
-    result_img = res.reshape((img.shape))
-
-    result_img = cv2.cvtColor(result_img, cv2.COLOR_BGR2GRAY)
-    return result_img
-
-
 def get_image_location(image, projection_matrix):
     height, width = image.shape[:2]
     corners = np.float32([[0, 0], [0, height - 1], [width - 1, height - 1], [width - 1, 0]]).reshape(-1, 1, 2)
