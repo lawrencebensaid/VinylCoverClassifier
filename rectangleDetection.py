@@ -1,19 +1,15 @@
 import cv2
 import numpy as np
 
-# frameWidth = 640
-# frameHeight = 480
-# cap = cv2.VideoCapture(0)
-# cap.set(3, frameWidth)
-# cap.set(4, frameHeight)
+# Settings
+windowTitle = 'Parameters'
 
-def empty(a):
-    pass
-
-# cv2.namedWindow("Parameters")
-# cv2.resizeWindow("Parameters", 640, 480)
-# cv2.createTrackbar("Threshold1", "Parameters", 20, 255, empty)
-# cv2.createTrackbar("Threshold2", "Parameters", 25, 255, empty)
+# Camera
+frameWidth = 640
+frameHeight = 480
+cap = cv2.VideoCapture(0)
+cap.set(3, frameWidth)
+cap.set(4, frameHeight)
 
 
 def stackImages(scale, imgArray):
@@ -62,8 +58,10 @@ def getShapes(img, areaThreshold=500):
             shapes.append(approx)
     return shapes
 
+
 def getBinaryImage(img):
-    result_img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+    result_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    result_img = cv2.threshold(result_img, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
     mask = np.ones((128, 128), np.uint8)
     result_img = cv2.morphologyEx(result_img, cv2.MORPH_CLOSE, mask)
     mask = np.ones((32, 32), np.uint8)
@@ -86,37 +84,69 @@ def applyKMeans(img):
     return result_img
 
 
-# success, img = cap.read()
-img = cv2.imread('doc/img/OriginalImage.jpg')
-# Convert to GRAYSCALE
-imgFiltered = applyKMeans(img)
-imgBinary = getBinaryImage(imgFiltered)
-imgContour = img.copy()
+def run():
 
-# imgBlur = cv2.GaussianBlur(img, (7, 7), 1)
+    success, img = cap.read()
+    # img = cv2.imread('results/CroppedImage.jpg')
 
-threshold1 = cv2.getTrackbarPos("Threshold1", "Parameters")
-threshold2 = cv2.getTrackbarPos("Threshold2", "Parameters")
-imgCanny = cv2.Canny(imgBinary, 20, 25)
+    # Get aspect ratio
+    aspect_ratio = img.shape[1] / img.shape[0]
 
-kernel = np.ones((5, 5))
-imgDil = cv2.dilate(imgCanny, kernel, iterations=1)
+    # Rescale image to width of 512. Keep the same aspect ratio.
+    img = cv2.resize(img, (int(aspect_ratio * 512), 512))
 
-shapes = getShapes(imgDil, areaThreshold=1000)
+    imgContour = img.copy()
 
-# Highlight all shapes
-for points in shapes:
-    x, y, w, h = cv2.boundingRect(points)
-    cv2.rectangle(imgContour, (x, y), (x + w, y + h), (0, 0, 255), 20)
-    cv2.putText(imgContour, f'Points: {len(points)}', (x, y - 50), cv2.FONT_HERSHEY_DUPLEX, 2, (0, 0, 255), 2)
+    imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-imgCropped = img[y:y + h, x:x + w]
+    threshold1 = cv2.getTrackbarPos('Canny threshold1', windowTitle)
+    threshold2 = cv2.getTrackbarPos('Canny threshold2', windowTitle)
+    imgCanny = cv2.Canny(imgGray, threshold1, threshold2)
+
+    threshold3 = cv2.getTrackbarPos('Morph mask', windowTitle)
+    kernel = np.ones((threshold3, threshold3), np.uint8)
+    imgClosed = cv2.morphologyEx(imgCanny, cv2.MORPH_CLOSE, kernel)
+    imgOpened = cv2.morphologyEx(imgClosed, cv2.MORPH_OPEN, kernel)
+    threshold4 = cv2.getTrackbarPos('Morph mask 2', windowTitle)
+    kernel = np.ones((threshold4, threshold4), np.uint8)
+    imgClosed2 = cv2.morphologyEx(imgOpened, cv2.MORPH_CLOSE, kernel)
 
 
-imgStack = stackImages(0.8, ([img, imgBinary, imgCanny], [imgDil, imgContour, imgCropped]))
+    shapes = getShapes(imgClosed2, areaThreshold=1000)
 
-cv2.imshow("Result", imgStack)
+    for points in shapes:
+        x, y, w, h = cv2.boundingRect(points)
+        cv2.rectangle(imgContour, (x, y), (x + w, y + h), (0, 0, 255), 20)
+        cv2.putText(imgContour, f'Points: {len(points)}', (x, y - 50), cv2.FONT_HERSHEY_DUPLEX, 2, (0, 0, 255), 2)
+
+    imgCropped = img[y:y + h, x:x + w]
+
+    imgStack = stackImages(0.8, ([img, imgGray, imgCanny], [imgClosed, imgOpened, imgClosed2], [imgContour, imgContour, imgCropped]))
+
+    # cv2.imwrite('results/CroppedImage.jpg', imgCropped)
+
+    cv2.imshow('Result', imgStack)
+    cv2.moveWindow('Result', 256, 128)
+
+
+
+def update(a):
+    print('RUN')
+    run()
+
+# Create window in the center of the screen
+cv2.namedWindow(windowTitle, cv2.WINDOW_GUI_EXPANDED)
+cv2.resizeWindow(windowTitle, 512, 64)
+cv2.createTrackbar('Canny threshold1', windowTitle, 20, 255, update)
+cv2.createTrackbar('Canny threshold2', windowTitle, 25, 255, update)
+cv2.createTrackbar('Morph mask', windowTitle, 8, 128, update)
+cv2.createTrackbar('Morph mask 2', windowTitle, 16, 128, update)
+
+# run()
 
 while True:
+
+    run()
+
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
