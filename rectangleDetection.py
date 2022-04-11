@@ -94,9 +94,6 @@ def stackImages(scale, imgArray):
     return ver
 
 
-
-
-
 def getShapes(img, minArea=0, maxArea=50000):
     contours, hierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     shapes = []
@@ -118,6 +115,7 @@ def getBinaryImage(img):
     result_img = cv2.morphologyEx(result_img, cv2.MORPH_OPEN, mask)
     result_img = cv2.morphologyEx(result_img, cv2.MORPH_ERODE, mask)
     return result_img
+
 
 def applyKMeans(img):
     Z = img.reshape((-1, 3))
@@ -143,7 +141,6 @@ def get_image_location(image, projection_matrix):
 
 def highlight(image, points, label = ''):
     pts = [np.int32([[p] for p in points])]
-    print(pts)
     color = (0, 255, 0)
     alpha = .25
     shapes = np.zeros_like(image, np.uint8)
@@ -188,27 +185,25 @@ def run():
     shapes = getShapes(imgMorph2, minArea)
 
     # 6) Highlighted image
-    imgCropped = img
+    imgsCropped = []
+    imgResult = img.copy()
     imgContour = img.copy()
     for points in shapes:
         x, y, w, h = cv2.boundingRect(points)
         cv2.rectangle(imgContour, (x, y), (x + w, y + h), (0, 0, 255), 20)
         cv2.putText(imgContour, f'Points: {len(points)}', (x, y - 50), cv2.FONT_HERSHEY_DUPLEX, 2, (0, 0, 255), 2)
         imgCropped = img[y:y + h, x:x + w]
+        imgsCropped.append(imgCropped)
+        (matches, confidence, original_key_points, test_key_points, projection_matrix) = feature_matching(original, imgCropped)
+        if confidence > 0.4:
+            print(confidence)
+            points = get_image_location(original, projection_matrix)
+            imgResult[y:y + h, x:x + w] = highlight(imgCropped, [p[0] for p in points])
 
 
-    (matches, confidence, original_key_points, test_key_points, projection_matrix) = feature_matching(original, imgCropped)
-    print(confidence)
-    points = get_image_location(original, projection_matrix)
-    imgHighlighted = highlight(imgCropped, [p[0] for p in points])
+    imgStack = stackImages(0.8, ([img, imgGray, imgCanny, imgMorph, imgMorph2, imgContour, imgResult]))
 
-    imgStack = stackImages(0.8, ([img, imgGray, imgCanny], [imgMorph, imgMorph2, imgMorph2], [imgContour, imgCropped, imgHighlighted]))
-
-    # cv2.imwrite('results/CroppedImage.jpg', imgCropped)
-
-    cv2.imshow('Result', imgStack)
-    cv2.moveWindow('Result', 256, 128)
-
+    cv2.imshow('Vinyl Cover Classifier', imgStack)
 
 
 def update(a):
