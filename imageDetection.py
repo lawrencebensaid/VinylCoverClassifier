@@ -19,7 +19,7 @@ cap.set(3, frameWidth)
 cap.set(4, frameHeight)
 
 # State
-original = None
+img_target = None
 testDir = './data/test'
 testImgs = []
 
@@ -66,7 +66,7 @@ def feature_matching(original_img, test_img):
     return (matches, confidence, original_key_points, test_key_points, projection_matrix)
 
 
-def stackImages(scale, imgArray):
+def imgs_to_stack(scale, imgArray):
     rows = len(imgArray)
     cols = len(imgArray[0])
     rowsAvailable = isinstance(imgArray[0], list)
@@ -98,7 +98,7 @@ def stackImages(scale, imgArray):
     return ver
 
 
-def getShapes(img, minArea=0, maxArea=50000, maxPoints=0):
+def get_shapes(img, minArea=0, maxArea=50000, maxPoints=0):
     contours, hierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     shapes = []
     for contour in contours:
@@ -135,7 +135,7 @@ def highlight(image, points, label = ''):
 
 def run():
 
-    success, img = cap.read()
+    _, img = cap.read()
     # imageIndex = cv2.getTrackbarPos('Image', windowTitle)
     # print(f'Image {imageIndex}')
     # img = testImgs[imageIndex]
@@ -143,16 +143,12 @@ def run():
     aspect_ratio = img.shape[1] / img.shape[0]
     img = cv2.resize(img, (int(aspect_ratio * sampleSize), sampleSize))
 
-
-    # 2) Gray image
-    imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    # 3) Canny image
+    # 2) Canny image
     threshold1 = cv2.getTrackbarPos('Canny threshold 1', windowTitle)
     threshold2 = cv2.getTrackbarPos('Canny threshold 2', windowTitle)
-    imgCanny = cv2.Canny(imgGray, threshold1, threshold2)
+    imgCanny = cv2.Canny(img, threshold1, threshold2)
 
-    # 4 & 5) Morphology images
+    # 3 & 4) Morphology images
     threshold3 = cv2.getTrackbarPos('Morph mask', windowTitle)
     kernel = np.ones((threshold3, threshold3), np.uint8)
     imgMorph = cv2.morphologyEx(imgCanny, cv2.MORPH_CLOSE, kernel)
@@ -161,9 +157,9 @@ def run():
 
     minArea = cv2.getTrackbarPos('Area threshold min', windowTitle)
     maxArea = cv2.getTrackbarPos('Area threshold max', windowTitle)
-    shapes = getShapes(imgMorph, minArea, maxPoints=0)
+    shapes = get_shapes(imgMorph, minArea, maxPoints=0)
 
-    # 6) Highlighted image
+    # 5 & 6) Highlighted shapes image & Highlighted album image
     imgsCropped = []
     imgResult = img.copy()
     imgContour = img.copy()
@@ -173,34 +169,31 @@ def run():
         cv2.putText(imgContour, f'Points: {len(points)}', (x, y - 50), cv2.FONT_HERSHEY_DUPLEX, 2, (0, 0, 255), 2)
         imgCropped = img[y:y + h, x:x + w]
         imgsCropped.append(imgCropped)
-        (matches, confidence, original_key_points, test_key_points, projection_matrix) = feature_matching(original, imgCropped)
+        (matches, confidence, original_key_points, test_key_points, projection_matrix) = feature_matching(img_target, imgCropped)
         if confidence > 0.4:
             print(confidence)
-            points = get_image_location(original, projection_matrix)
+            points = get_image_location(img_target, projection_matrix)
             imgResult[y:y + h, x:x + w] = highlight(imgCropped, [p[0] for p in points])
 
 
-    imgStack = stackImages(0.8, ([imgCanny, imgMorph], [imgContour, imgResult]))
-
+    imgStack = imgs_to_stack(0.8, ([imgCanny, imgMorph], [imgContour, imgResult]))
     cv2.imshow('Vinyl Cover Classifier', imgStack)
 
 
 def update(a):
-    print('RUN')
     run()
 
 
 if __name__ == '__main__':
-    extensions = ['jpg', 'jpeg', 'png', 'pgm']
-    results_path = './results'
+    # extensions = ['jpg', 'jpeg', 'png', 'pgm']
 
     parser = argparse.ArgumentParser(description="Test")
-    parser.add_argument("--original-dir", type=str)
-    parser.add_argument("--test-img", type=str)
+    parser.add_argument("--img", type=str)
+    # parser.add_argument("--test-img", type=str)
     args = parser.parse_args()
 
-    original = cv2.imread(args.original_dir)
-    testImgs = [cv2.imread(path.join(testDir, file)) for file in listdir(args.test_img)]
+    img_target = cv2.imread(args.img)
+    # testImgs = [cv2.imread(path.join(testDir, file)) for file in listdir(args.test_img)]
 
     # Create window in the center of the screen
     cv2.namedWindow(windowTitle, cv2.WINDOW_GUI_EXPANDED)
@@ -208,16 +201,15 @@ if __name__ == '__main__':
     cv2.createTrackbar('Canny threshold 1', windowTitle, 127, 255, update)
     cv2.createTrackbar('Canny threshold 2', windowTitle, 127, 255, update)
     cv2.createTrackbar('Morph mask', windowTitle, 12, 128, update)
-    # cv2.createTrackbar('Morph mask 2', windowTitle, 16, 128, update)
-    cv2.createTrackbar('Image', windowTitle, 0, len(testImgs) - 1, update)
+    # cv2.createTrackbar('Image', windowTitle, 0, len(testImgs) - 1, update)
     cv2.createTrackbar('Area threshold min', windowTitle, 512, sampleSize * sampleSize, update)
     cv2.createTrackbar('Area threshold max', windowTitle, sampleSize, sampleSize * sampleSize, update)
 
-    # run()
+    # run() # Enable for update-based run
 
     while True:
 
-        run()
+        run() # Enable for real-rime run loop
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
