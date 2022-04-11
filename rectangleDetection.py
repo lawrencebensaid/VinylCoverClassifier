@@ -12,11 +12,11 @@ windowTitle = 'Parameters'
 sampleSize = 512
 
 # Camera
-# frameWidth = 640
-# frameHeight = 480
-# cap = cv2.VideoCapture(0)
-# cap.set(3, frameWidth)
-# cap.set(4, frameHeight)
+frameWidth = 640
+frameHeight = 480
+cap = cv2.VideoCapture(0)
+cap.set(3, frameWidth)
+cap.set(4, frameHeight)
 
 # State
 original = None
@@ -44,9 +44,13 @@ def feature_matching(original_img, test_img):
 
     # Match
     bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+    if original_descriptors is None or test_descriptors is None:
+        return (None, 0, [], [], None)
     all_matches = bf.match(original_descriptors, test_descriptors)
 
     all_matches = sorted(all_matches, key=lambda x: x.distance)  # Orb matches by distance
+    if len(all_matches) < 5:
+        return (None, 0, [], [], None)
     matches = all_matches[:threshold]
 
     # print(f'Good matches: {len(matches)}/{len(all_matches)}')
@@ -94,7 +98,7 @@ def stackImages(scale, imgArray):
     return ver
 
 
-def getShapes(img, minArea=0, maxArea=50000):
+def getShapes(img, minArea=0, maxArea=50000, maxPoints=0):
     contours, hierarchy = cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     shapes = []
     for contour in contours:
@@ -102,19 +106,9 @@ def getShapes(img, minArea=0, maxArea=50000):
         if area > minArea and area < maxArea:
             peri = cv2.arcLength(contour, True)
             approx = cv2.approxPolyDP(contour, 0.02 * peri, True)
-            shapes.append(approx)
+            if maxPoints == 0 or len(approx) <= maxPoints:
+                shapes.append(approx)
     return shapes
-
-
-def getBinaryImage(img):
-    result_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    result_img = cv2.threshold(result_img, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
-    mask = np.ones((128, 128), np.uint8)
-    result_img = cv2.morphologyEx(result_img, cv2.MORPH_CLOSE, mask)
-    mask = np.ones((32, 32), np.uint8)
-    result_img = cv2.morphologyEx(result_img, cv2.MORPH_OPEN, mask)
-    result_img = cv2.morphologyEx(result_img, cv2.MORPH_ERODE, mask)
-    return result_img
 
 
 def get_image_location(image, projection_matrix):
@@ -141,10 +135,10 @@ def highlight(image, points, label = ''):
 
 def run():
 
-    # success, img = cap.read()
-    imageIndex = cv2.getTrackbarPos('Image', windowTitle)
-    print(f'Image {imageIndex}')
-    img = testImgs[imageIndex]
+    success, img = cap.read()
+    # imageIndex = cv2.getTrackbarPos('Image', windowTitle)
+    # print(f'Image {imageIndex}')
+    # img = testImgs[imageIndex]
 
     aspect_ratio = img.shape[1] / img.shape[0]
     img = cv2.resize(img, (int(aspect_ratio * sampleSize), sampleSize))
@@ -163,11 +157,11 @@ def run():
     kernel = np.ones((threshold3, threshold3), np.uint8)
     imgMorph = cv2.morphologyEx(imgCanny, cv2.MORPH_CLOSE, kernel)
     kernel = np.ones((3, 3), np.uint8)
-    imgMorph2 = cv2.morphologyEx(imgMorph, cv2.MORPH_OPEN, kernel)
+    imgMorph = cv2.morphologyEx(imgMorph, cv2.MORPH_OPEN, kernel)
 
     minArea = cv2.getTrackbarPos('Area threshold min', windowTitle)
     maxArea = cv2.getTrackbarPos('Area threshold max', windowTitle)
-    shapes = getShapes(imgMorph2, minArea)
+    shapes = getShapes(imgMorph, minArea, maxPoints=0)
 
     # 6) Highlighted image
     imgsCropped = []
@@ -186,7 +180,7 @@ def run():
             imgResult[y:y + h, x:x + w] = highlight(imgCropped, [p[0] for p in points])
 
 
-    imgStack = stackImages(0.8, ([img, imgGray, imgCanny, imgMorph, imgMorph2, imgContour, imgResult]))
+    imgStack = stackImages(0.8, ([imgCanny, imgMorph], [imgContour, imgResult]))
 
     cv2.imshow('Vinyl Cover Classifier', imgStack)
 
@@ -219,11 +213,11 @@ if __name__ == '__main__':
     cv2.createTrackbar('Area threshold min', windowTitle, 512, sampleSize * sampleSize, update)
     cv2.createTrackbar('Area threshold max', windowTitle, sampleSize, sampleSize * sampleSize, update)
 
-    run()
+    # run()
 
     while True:
 
-        # run()
+        run()
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
