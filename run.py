@@ -3,8 +3,7 @@ import numpy as np
 from datetime import datetime
 from os import path, listdir, mkdir
 from shutil import rmtree
-import json
-import argparse
+from argparse import ArgumentParser
 from lib import *
 import re
 
@@ -13,12 +12,12 @@ DEBUG_WINDOW_TITLE = 'Debug parameters'
 
 
 # CLI definition
-parser = argparse.ArgumentParser(description='Vinyl Cover Classifier')
-parser.add_argument('--data', type=str, default='./data/original', help='Path to data used to match potential vinyl covers')
-parser.add_argument('--debug', action='store_true', help='Show debug console')
+parser = ArgumentParser(description='Vinyl Cover Classifier')
+parser.add_argument('--camera', action='store_true', help='Use camera instead of input images to do real-time classification')
+parser.add_argument('--debug', action='store_true', help='Show debug window')
 parser.add_argument('--verbose', action='store_true', help='Verbose output')
-parser.add_argument('--camera', action='store_true', help='Use camera instead of images to do real-time classification')
-parser.add_argument('--input', type=str, default='./data/test', help='Path to input image(s). Can be a folder or a single image.')
+parser.add_argument('--data', type=str, default='./data/original', help='Path to data directory/file used to match potential vinyl covers (Can be a folder or a single image)')
+parser.add_argument('--input', type=str, default='./data/test', help='Path to data directory/file used to match potential vinyl covers (Can be a folder or a single image)')
 parser.add_argument('--output', type=str, default='./results', help='Path to output directory')
 parser.add_argument('--size', type=int, default=512, help='Size to resize images to while in pipeline. (Lower = Faster, Higher = More accurate)')
 args = parser.parse_args()
@@ -30,10 +29,13 @@ data_imgs = []
 input_imgs = []
 
 
-def run_pipeline(img, confidence_threshold=.3):
+def run_pipeline(img, confidence_threshold=.35):
 
     aspect_ratio = img.shape[1] / img.shape[0]
     img = cv2.resize(img, (int(aspect_ratio * sampleSize), sampleSize))
+
+    # img_grayscale = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  # Grayscale image is only used for segmented image matching, not for the image processing within this pipeline
+    img_grayscale = img
 
     # 2) Canny image
     threshold1 = cv2.getTrackbarPos('Canny threshold 1', DEBUG_WINDOW_TITLE)
@@ -57,7 +59,6 @@ def run_pipeline(img, confidence_threshold=.3):
     shapes = get_shapes(imgMorph, minArea, maxPoints=0)
 
     # 5 & 6) Highlighted shapes image & Highlighted album image
-    imgsCropped = []
     imgResult = img.copy()
     imgContour = img.copy()
     remaining_data_imgs = data_imgs.copy()
@@ -66,19 +67,18 @@ def run_pipeline(img, confidence_threshold=.3):
         x, y, w, h = cv2.boundingRect(points)
         cv2.rectangle(imgContour, (x, y), (x + w, y + h), (0, 0, 255), 20)
         cv2.putText(imgContour, f'Points: {len(points)}', (x, y - 50), cv2.FONT_HERSHEY_DUPLEX, 2, (0, 0, 255), 2)
-        imgCropped = img[y:y + h, x:x + w]
-        imgsCropped.append(imgCropped)
-        for name, data_img in remaining_data_imgs:
-            _, confidence, _, _, projection_matrix = feature_matching(data_img, imgCropped)
+        for filename, data_img in remaining_data_imgs:
+            name = re.sub(r'\.[^\.]+$', '', filename)
+            _, confidence, _, _, projection_matrix = feature_matching(data_img, img_grayscale[y:y + h, x:x + w])
             if confidence > confidence_threshold:
-                remaining_data_imgs.remove((name, data_img))
-                if not args.camera:
+                remaining_data_imgs.remove((filename, data_img))
+                if args.verbose and not args.camera:
                     print(f'Found \'{name}\' ({round(confidence * 100)}%)')
                 points = get_image_location(data_img, projection_matrix)
-                matched_imgs[name] = (imgCropped, [p[0] for p in points], (x, y, w, h))
-                cv2.imwrite(f'{args.output}/{name}.jpg', imgCropped)
+                matched_imgs[name] = (img[y:y + h, x:x + w], [p[0] for p in points], (x, y, w, h))
                 break
     for name, (segment, points, (x, y, w, h)) in matched_imgs.items():
+        cv2.imwrite(f'{args.output}/{name}.jpg', segment)
         imgResult[y:y + h, x:x + w] = highlight(segment, points)
 
 
@@ -124,9 +124,11 @@ data_names = sorted([x for x in listdir(args.data) if re.search(format_re, x)])
 if len(data_names) == 0:
     print(f'No images found in data directory {args.data})')
     exit(1)
-print(f'Loading {len(data_names)} data images')
+if args.verbose:
+    print(f'Loading {len(data_names)} data images')
 data_imgs = [(file, cv2.imread(path.join(args.data, file))) for file in data_names]
-print(f'Loaded {len(data_imgs)} data images')
+if args.verbose:
+    print(f'Loaded {len(data_imgs)} data images')
 
 
 # Create window in the center of the screen
@@ -154,9 +156,11 @@ else:  # Update-based pipeline run
     if len(input_names) == 0:
         print(f'No images found in test directory ({args.input})')
         exit(1)
-    print(f'Loading {len(input_names)} input images')
+    if args.verbose:
+        print(f'Loading {len(input_names)} input images')
     input_imgs = [(file, cv2.imread(path.join(args.input, file))) for file in input_names]
-    print(f'Loaded {len(input_imgs)} input images')
+    if args.verbose:
+        print(f'Loaded {len(input_imgs)} input images')
     cv2.destroyWindow(DEBUG_WINDOW_TITLE)
     show_debug_console(0)
 

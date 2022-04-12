@@ -15,8 +15,21 @@ $ python run.py --camera --data data/original/Beatles.pgm --max-matches 1
 *Find all albums in an image with adjustible parameters*
 
 ```bash
-$ python run.py --data data/original --debug
+$ python run.py --data data/original --verbose --debug
 ```
+
+## Flag options
+
+|Name|Type|Description|
+|---|---|---|
+|`--camera`|**Boolean**|*Use camera instead of input images to do real-time classification*|
+|`--debug`|**Boolean**|*Show debug window*|
+|`--verbose`|**Boolean**|*Verbose output*|
+|`--size`|**Integer**|*Size to resize images to while in pipeline. (Lower = Faster, Higher = More accurate)*|
+|`--data`|**String**|*Path to data directory/file used to match potential vinyl covers (Can be a folder or a single image)*|
+|`--input`|**String**|*Path to data directory/file used to match potential vinyl covers (Can be a folder or a single image)*|
+|`--output`|**String**|*Path to output directory*|
+
 
 ## Demo
 
