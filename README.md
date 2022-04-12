@@ -5,7 +5,7 @@ Highlight all albums in the wall
 ## Run
 
 ```bash
-$ python imageDetection.py --img data/original/Beatles.pgm
+$ python run.py --img data/original/Beatles.pgm
 ```
 
 ## Demo
