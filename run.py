@@ -119,14 +119,34 @@ def rm_output_dir():
     rmtree(args.output)
 
 
-format_re = r'\.' + '|\.'.join(['jpg', 'jpeg', 'png', 'bmp', 'pgm'])
-data_names = sorted([x for x in listdir(args.data) if re.search(format_re, x)])
-if len(data_names) == 0:
-    print(f'No images found in data directory {args.data})')
-    exit(1)
-if args.verbose:
-    print(f'Loading {len(data_names)} data images')
-data_imgs = [(file, cv2.imread(path.join(args.data, file))) for file in data_names]
+def get_images(dir, exit_on_error=False):
+    if not path.exists(dir):
+        print(f'Directory does not exist. ({dir})')
+        if exit_on_error:
+            exit(1)
+        return (None, None)
+    format_re = r'\.' + '|\.'.join(['jpg', 'jpeg', 'png', 'bmp', 'pgm'])
+    filenames = []
+    directory = dir
+    if re.search(format_re, dir):
+        components = dir.split(path.sep)
+        directory = '/'.join(components[0:-1])
+        filenames = [components[-1]]
+    else:
+        filenames = sorted([x for x in listdir(directory) if re.search(format_re, x)])
+    if len(filenames) == 0:
+        print(f'No images found in directory ({dir})')
+        if exit_on_error:
+            exit(1)
+        return ([], filenames)
+    if args.verbose:
+        print(f'Loading {len(filenames)} images')
+    return ([cv2.imread(path.join(directory, file)) for file in filenames], filenames)
+
+
+
+images, filenames = get_images(args.data, exit_on_error=True)
+data_imgs = list(zip(filenames, images))
 if args.verbose:
     print(f'Loaded {len(data_imgs)} data images')
 
@@ -151,27 +171,30 @@ if args.camera:  # Continuous pipeline run loop (Real-rime video stream)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 else:  # Update-based pipeline run
-    format_re = r'\.' + '|\.'.join(['jpg', 'jpeg', 'png', 'bmp', 'pgm'])
-    input_names = sorted([x for x in listdir(args.input) if re.search(format_re, x)])
-    if len(input_names) == 0:
-        print(f'No images found in test directory ({args.input})')
-        exit(1)
-    if args.verbose:
-        print(f'Loading {len(input_names)} input images')
-    input_imgs = [(file, cv2.imread(path.join(args.input, file))) for file in input_names]
+    images, filenames = get_images(args.input, exit_on_error=True)
+    input_imgs = list(zip(filenames, images))
     if args.verbose:
         print(f'Loaded {len(input_imgs)} input images')
     cv2.destroyWindow(DEBUG_WINDOW_TITLE)
     show_debug_console(0)
 
-    rm_output_dir()
-    mkdir(args.output)
+    if len(listdir(args.output)) > 0:
+        print(f'\nOutput directory is not empty. ({args.output})')
+        if input('Clear output directory? [y/N] ') == 'y':
+            print('yes: Clearing output directory')
+            rm_output_dir()
+            mkdir(args.output)
+        else:
+            print('No: Not clearing output directory')
+    
+    print('')
     run_pipeline(input_imgs[0][1])
 
     print('\n(Press Ctrl+C to exit)')
     while True:
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+
 
 
 cv2.destroyAllWindows()
