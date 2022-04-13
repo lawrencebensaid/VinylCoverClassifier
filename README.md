@@ -26,6 +26,7 @@ $ python run.py --data data/original --verbose --debug
 |`--debug`|**Boolean**|*Show debug window*|
 |`--verbose`|**Boolean**|*Verbose output*|
 |`--size`|**Integer**|*Size to resize images to while in pipeline. (Lower = Faster, Higher = More accurate)*|
+|`--confidence`|**Integer**|*Confidence threshold ranging from 0 to 100*|
 |`--data`|**String**|*Path to data directory/file used to match potential vinyl covers (Can be a folder or a single image)*|
 |`--input`|**String**|*Path to data directory/file used to match potential vinyl covers (Can be a folder or a single image)*|
 |`--output`|**String**|*Path to output directory*|

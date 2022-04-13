@@ -20,6 +20,7 @@ parser.add_argument('--data', type=str, default='./data/original', help='Path to
 parser.add_argument('--input', type=str, default='./data/test', help='Path to data directory/file used to match potential vinyl covers (Can be a folder or a single image)')
 parser.add_argument('--output', type=str, default='./results', help='Path to output directory')
 parser.add_argument('--size', type=int, default=512, help='Size to resize images to while in pipeline. (Lower = Faster, Higher = More accurate)')
+parser.add_argument('--confidence', type=int, default=40, help='Confidence threshold ranging from 0 to 100')
 args = parser.parse_args()
 sampleSize = args.size
 
@@ -97,7 +98,7 @@ def change(_):
         imgIdx = cv2.getTrackbarPos('Image', DEBUG_WINDOW_TITLE)
         imgIdx = imgIdx if imgIdx > 0 else 0
         print(f'Image {imgIdx} ({input_imgs[imgIdx][0]})')
-        run_pipeline(input_imgs[imgIdx][1])
+        run_pipeline(input_imgs[imgIdx][1], args.confidence / 100)
 
 
 def show_debug_console(useCamera):
@@ -144,6 +145,9 @@ def get_images(dir, exit_on_error=False):
     return ([cv2.imread(path.join(directory, file)) for file in filenames], filenames)
 
 
+if args.confidence < 0 or args.confidence > 100:
+    print('Confidence must be between 0 and 100!')
+    exit(1)
 
 images, filenames = get_images(args.data, exit_on_error=True)
 data_imgs = list(zip(filenames, images))
@@ -166,7 +170,7 @@ if args.camera:  # Continuous pipeline run loop (Real-rime video stream)
     print('\n(Press Ctrl+C to exit)')
     while True:
         _, img = cap.read()
-        run_pipeline(img)
+        run_pipeline(img, args.confidence / 100)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
@@ -188,7 +192,7 @@ else:  # Update-based pipeline run
             print('No: Not clearing output directory')
     
     print('')
-    run_pipeline(input_imgs[0][1])
+    run_pipeline(input_imgs[0][1], args.confidence / 100)
 
     print('\n(Press Ctrl+C to exit)')
     while True:
