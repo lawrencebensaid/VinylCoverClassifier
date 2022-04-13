@@ -66,8 +66,8 @@ def run_pipeline(img, confidence_threshold=.35):
     matched_imgs = {}
     for points in shapes:
         x, y, w, h = cv2.boundingRect(points)
-        cv2.rectangle(imgContour, (x, y), (x + w, y + h), (0, 0, 255), 20)
-        cv2.putText(imgContour, f'Points: {len(points)}', (x, y - 50), cv2.FONT_HERSHEY_DUPLEX, 2, (0, 0, 255), 2)
+        cv2.rectangle(imgContour, (x, y), (x + w, y + h), (0, 0, 255), 10)
+        # cv2.putText(imgContour, f'Points: {len(points)}', (x, y - 50), cv2.FONT_HERSHEY_DUPLEX, 2, (0, 0, 255), 2)
         for filename, data_img in remaining_data_imgs:
             name = re.sub(r'\.[^\.]+$', '', filename)
             _, confidence, _, _, projection_matrix = feature_matching(data_img, img_grayscale[y:y + h, x:x + w])
@@ -80,7 +80,7 @@ def run_pipeline(img, confidence_threshold=.35):
                 break
     for name, (segment, points, (x, y, w, h)) in matched_imgs.items():
         cv2.imwrite(f'{args.output}/{name}.jpg', segment)
-        imgResult[y:y + h, x:x + w] = highlight(segment, points)
+        imgResult[y:y + h, x:x + w] = highlight(segment, points, name)
 
 
     imgStack = imgs_to_stack(0.8, ([imgCanny, imgMorph], [imgContour, imgResult]))

@@ -106,6 +106,5 @@ def highlight(image, points, label = ''):
     mask = shapes.astype(bool)
     result_img[mask] = cv2.addWeighted(result_img, 1 - alpha, shapes, alpha, 0)[mask]
     result_img = cv2.polylines(result_img, pts, True, color, 12, lineType=cv2.LINE_AA)
-    
-    # cv2.putText(result_img, label, (points[0][0], points[0][1] - 20), cv2.FONT_HERSHEY_DUPLEX, 1.5, (0, 255, 0), 4, cv2.LINE_AA)
+    result_img = cv2.putText(result_img, label, (int(points[0][0]) + 10, int(points[0][1]) + 20), cv2.FONT_HERSHEY_DUPLEX, .5, (0, 255, 0), 1, cv2.LINE_AA)
     return result_img
