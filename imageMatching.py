@@ -94,7 +94,10 @@ if __name__ == '__main__':
     with open(path.join(results_path, 'results.json'), 'a') as f:
         json.dump([], f)
         f.close()
-
+    
+    cropped_imgs = []
+    cropped_path = path.join(results_path, "cropped_results")
+    mkdir(cropped_path)
     # Loop through images
     result_img = test_img.copy()
     for file, original_img in original_imgs:
@@ -109,6 +112,10 @@ if __name__ == '__main__':
         points = get_image_location(original_img, projection_matrix)
 
         point_arr = [int(x) for x in np.array(points).ravel()]
+        
+        (x1, y1, x2, y2, x3, y3, x4, y4) = point_arr
+        cropped_im = test_img[y1:y3, x1:x3]
+
         result = {
             'name': name,
             'confidence': confidence,
@@ -122,6 +129,7 @@ if __name__ == '__main__':
         annotated_img = cv2.drawMatches(original_img, original_key_points, test_img, test_key_points, matches, None, **dict(matchColor=(255, 0, 0), flags=2))
 
         cv2.imwrite(f'./results/report_{name}.{test_extension}', annotated_img)
+        cv2.imwrite(f'./results/cropped_results/{name}.{test_extension}', cropped_im)
 
     # Render results
     results = json.load(open(path.join(results_path, 'results.json')))
