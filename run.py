@@ -109,7 +109,7 @@ def show_debug_console(useCamera):
     cv2.createTrackbar('Morph mask', DEBUG_WINDOW_TITLE, 12, 128, change)
     cv2.createTrackbar('Area threshold min', DEBUG_WINDOW_TITLE, 512, sampleSize * sampleSize, change)
     cv2.createTrackbar('Area threshold max', DEBUG_WINDOW_TITLE, sampleSize, sampleSize * sampleSize, change)
-    if useCamera == 0:
+    if useCamera == 0 and len(input_imgs) > 1:
         cv2.createTrackbar('Image', DEBUG_WINDOW_TITLE, 0, len(input_imgs) - 1, change)
 
 
