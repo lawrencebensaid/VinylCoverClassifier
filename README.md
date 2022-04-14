@@ -7,16 +7,22 @@ Highlight all albums in the wall
 *Find 1 album in an image in real time*
 
 ```bash
-$ python run.py --camera --data data/original/Beatles.pgm --max-matches 1
+$ python run.py --camera --data data/original/Beatles.pgm
 ```
 
 ## Demo
 
 *Real-time detection and tracking of David Bowie's Hunky Dory album cover (green rectangle).*
 
-![demo](https://user-images.githubusercontent.com/43364935/162777882-38b2d0c5-8f70-442a-a203-e29104f3ae7b.gif)
+<img width="100%" alt="Demo GIF" src="https://user-images.githubusercontent.com/43364935/162777882-38b2d0c5-8f70-442a-a203-e29104f3ae7b.gif">
 
 ## Examples
+
+*User real-time classification & tracking. Looking for the Beatles album*
+
+```bash
+$ python run.py --data data/original/Beatles.pgm --verbose --camera
+```
 
 *Find all albums in an image with adjustible parameters*
 
@@ -24,11 +30,7 @@ $ python run.py --camera --data data/original/Beatles.pgm --max-matches 1
 $ python run.py --data data/original --verbose --debug
 ```
 
-*User real-time classification & tracking. Looking for the Beatles album*
-
-```bash
-$ python run.py --data data/original/Beatles.pgm --verbose --camera
-```
+<img width="25%" alt="Result screenshot" src="https://user-images.githubusercontent.com/43364935/163409398-e275adb1-223d-4ff2-b045-45bf1c786ca7.png">
 
 ## CLI reference
 
