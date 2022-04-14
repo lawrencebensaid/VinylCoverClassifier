@@ -33,6 +33,9 @@ python run.py --camera --data data/original/Beatles.pgm
 $ python run.py --data data/original/Beatles.pgm --verbose --camera
 ```
 
+<img width="25%" alt="Result screenshot" src="https://github.com/lawrencebensaid/VinylCoverClassifier/blob/develop/doc/img/beatles.gif?raw=true">
+
+
 *Find all albums in an image with adjustible parameters*
 
 ```bash
