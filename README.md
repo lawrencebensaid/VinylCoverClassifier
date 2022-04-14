@@ -17,6 +17,8 @@ pip install numpy opencv-python opencv-contrib-python
 python run.py --camera --data data/original/Beatles.pgm
 ```
 
+\* ***Make sure your results folder exists!***
+
 *Find 1 album in an image in real time*
 
 ## Demo
