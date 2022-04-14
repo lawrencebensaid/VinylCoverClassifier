@@ -2,13 +2,22 @@
 
 Highlight all albums in the wall
 
-## Run
+## Install
 
-*Find 1 album in an image in real time*
+Prerequisite: Python 3.7+
+
+**Install dependencies**
 
 ```bash
-$ python run.py --camera --data data/original/Beatles.pgm
+pip install numpy opencv-python opencv-contrib-python
 ```
+
+**Run the program**
+```bash
+python run.py --camera --data data/original/Beatles.pgm
+```
+
+*Find 1 album in an image in real time*
 
 ## Demo
 
