@@ -10,7 +10,13 @@ Highlight all albums in the wall
 $ python run.py --camera --data data/original/Beatles.pgm --max-matches 1
 ```
 
-### Debug
+## Demo
+
+*Real-time detection and tracking of David Bowie's Hunky Dory album cover (green rectangle).*
+
+![demo](https://user-images.githubusercontent.com/43364935/162777882-38b2d0c5-8f70-442a-a203-e29104f3ae7b.gif)
+
+## Examples
 
 *Find all albums in an image with adjustible parameters*
 
@@ -18,7 +24,13 @@ $ python run.py --camera --data data/original/Beatles.pgm --max-matches 1
 $ python run.py --data data/original --verbose --debug
 ```
 
-## Flag options
+*User real-time classification & tracking. Looking for the Beatles album*
+
+```bash
+$ python run.py --data data/original/Beatles.pgm --verbose --camera
+```
+
+## CLI reference
 
 |Name|Type|Description|
 |---|---|---|
@@ -30,10 +42,3 @@ $ python run.py --data data/original --verbose --debug
 |`--data`|**String**|*Path to data directory/file used to match potential vinyl covers (Can be a folder or a single image)*|
 |`--input`|**String**|*Path to data directory/file used to match potential vinyl covers (Can be a folder or a single image)*|
 |`--output`|**String**|*Path to output directory*|
-
-
-## Demo
-
-*Real-time detection and tracking of David Bowie's Hunky Dory album cover (green rectangle).*
-
-![demo](https://user-images.githubusercontent.com/43364935/162777882-38b2d0c5-8f70-442a-a203-e29104f3ae7b.gif)
