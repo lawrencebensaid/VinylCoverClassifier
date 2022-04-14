@@ -53,3 +53,14 @@ $ python run.py --data data/original --verbose --debug
 |`--data`|**String**|*Path to data directory/file used to match potential vinyl covers (Can be a folder or a single image)*|
 |`--input`|**String**|*Path to data directory/file used to match potential vinyl covers (Can be a folder or a single image)*|
 |`--output`|**String**|*Path to output directory*|
+
+## Known issues
+
+### Windows UI bug
+
+*When on Windows, your app may crash when not applying the `--debug` flag. This depends on your system and environment.*
+
+**How to solve?**
+
+*Apply the `--debug` flag to your run command.*
+
